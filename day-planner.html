@@ -1,0 +1,517 @@
+<!DOCTYPE html>
+<html lang="hy">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Իմ օրվա պլան + Զարթուցիչ</title>
+<style>
+  :root {
+    --bg: #f5f3ef;
+    --card-bg: #ffffff;
+    --text: #1f2320;
+    --muted: #6b7280;
+    --accent: #2f6f4f;
+    --accent-light: #e4f0e9;
+    --border: #e5e1da;
+    --danger: #b3452c;
+    --shadow: 0 2px 10px rgba(0,0,0,0.06);
+    --ring: #d99a2b;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg: #16181a;
+      --card-bg: #1f2224;
+      --text: #eceae5;
+      --muted: #9a9a94;
+      --accent: #6fbf94;
+      --accent-light: #223a2d;
+      --border: #303434;
+      --danger: #e07a5f;
+      --shadow: 0 2px 14px rgba(0,0,0,0.4);
+      --ring: #e6b545;
+    }
+  }
+  :root[data-theme="dark"] {
+    --bg: #16181a;
+    --card-bg: #1f2224;
+    --text: #eceae5;
+    --muted: #9a9a94;
+    --accent: #6fbf94;
+    --accent-light: #223a2d;
+    --border: #303434;
+    --danger: #e07a5f;
+    --shadow: 0 2px 14px rgba(0,0,0,0.4);
+    --ring: #e6b545;
+  }
+
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Segoe UI', -apple-system, BlinkMacSystemFont, sans-serif;
+    padding: 24px 16px 60px;
+    min-height: 100vh;
+  }
+  .wrap { max-width: 640px; margin: 0 auto; }
+
+  header { text-align: center; margin-bottom: 24px; }
+  header .clock {
+    font-size: 2.6rem;
+    font-weight: 700;
+    letter-spacing: 1px;
+    font-variant-numeric: tabular-nums;
+  }
+  header .date {
+    color: var(--muted);
+    font-size: 0.95rem;
+    margin-top: 4px;
+  }
+
+  .card {
+    background: var(--card-bg);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    box-shadow: var(--shadow);
+    padding: 18px;
+    margin-bottom: 18px;
+  }
+  .card h2 {
+    margin: 0 0 14px;
+    font-size: 1.1rem;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  /* ---- Plan ---- */
+  .add-row {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 14px;
+    flex-wrap: wrap;
+  }
+  .add-row input[type="text"] {
+    flex: 1 1 160px;
+  }
+  input[type="text"], input[type="time"] {
+    background: var(--bg);
+    border: 1px solid var(--border);
+    color: var(--text);
+    border-radius: 8px;
+    padding: 10px 12px;
+    font-size: 0.95rem;
+    outline: none;
+  }
+  input[type="time"] { flex: 0 0 auto; }
+  input:focus { border-color: var(--accent); }
+
+  button {
+    border: none;
+    border-radius: 8px;
+    padding: 10px 16px;
+    font-size: 0.95rem;
+    cursor: pointer;
+    font-weight: 600;
+    transition: opacity 0.15s ease;
+  }
+  button:active { opacity: 0.75; }
+  .btn-primary { background: var(--accent); color: white; }
+  .btn-danger { background: transparent; color: var(--danger); padding: 6px 10px; font-size: 0.85rem; }
+  .btn-ghost { background: var(--accent-light); color: var(--accent); }
+
+  ul.tasks { list-style: none; margin: 0; padding: 0; }
+  ul.tasks li {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 0;
+    border-bottom: 1px solid var(--border);
+  }
+  ul.tasks li:last-child { border-bottom: none; }
+  ul.tasks li .time-tag {
+    font-variant-numeric: tabular-nums;
+    font-weight: 700;
+    color: var(--accent);
+    min-width: 52px;
+  }
+  ul.tasks li .task-text {
+    flex: 1;
+    word-break: break-word;
+  }
+  ul.tasks li.done .task-text { text-decoration: line-through; color: var(--muted); }
+  ul.tasks li.done .time-tag { color: var(--muted); }
+  .empty-note { color: var(--muted); font-size: 0.9rem; text-align: center; padding: 10px 0; }
+
+  /* ---- Alarm ---- */
+  .alarm-set-row {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+    flex-wrap: wrap;
+  }
+  .alarm-list { margin-top: 14px; }
+  .alarm-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 10px 12px;
+    border-radius: 10px;
+    background: var(--bg);
+    border: 1px solid var(--border);
+    margin-bottom: 8px;
+  }
+  .alarm-item .a-time {
+    font-size: 1.3rem;
+    font-weight: 700;
+    font-variant-numeric: tabular-nums;
+  }
+  .alarm-item.inactive .a-time { color: var(--muted); }
+  .alarm-item .a-controls { display: flex; align-items: center; gap: 10px; }
+
+  .toggle {
+    width: 42px; height: 24px;
+    background: var(--border);
+    border-radius: 999px;
+    position: relative;
+    cursor: pointer;
+    flex: 0 0 auto;
+  }
+  .toggle.on { background: var(--accent); }
+  .toggle::after {
+    content: "";
+    position: absolute;
+    top: 2px; left: 2px;
+    width: 20px; height: 20px;
+    background: white;
+    border-radius: 50%;
+    transition: left 0.15s ease;
+  }
+  .toggle.on::after { left: 20px; }
+
+  /* Ringing overlay */
+  .ring-overlay {
+    position: fixed; inset: 0;
+    background: rgba(0,0,0,0.55);
+    display: none;
+    align-items: center; justify-content: center;
+    z-index: 999;
+    padding: 20px;
+  }
+  .ring-overlay.show { display: flex; }
+  .ring-box {
+    background: var(--card-bg);
+    border-radius: 16px;
+    padding: 30px 26px;
+    text-align: center;
+    max-width: 320px;
+    box-shadow: 0 8px 30px rgba(0,0,0,0.3);
+    animation: pulse 1s infinite;
+  }
+  @keyframes pulse {
+    0%, 100% { transform: scale(1); }
+    50% { transform: scale(1.03); }
+  }
+  .ring-box .bell { font-size: 3rem; margin-bottom: 6px; }
+  .ring-box h3 { margin: 4px 0 18px; font-size: 1.4rem; }
+  .ring-box button { width: 100%; margin-top: 8px; }
+
+  .hint { color: var(--muted); font-size: 0.82rem; margin-top: 10px; line-height: 1.4; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div class="clock" id="liveClock">--:--:--</div>
+    <div class="date" id="liveDate"></div>
+  </header>
+
+  <div class="card">
+    <h2>📋 Իմ օրվա պլանը</h2>
+    <div class="add-row">
+      <input type="time" id="taskTime">
+      <input type="text" id="taskText" placeholder="Ինչ պետք է անել…">
+      <button class="btn-primary" id="addTaskBtn">Ավելացնել</button>
+    </div>
+    <ul class="tasks" id="taskList"></ul>
+    <div class="empty-note" id="emptyNote">Առայժմ առաջադրանքներ չկան</div>
+  </div>
+
+  <div class="card">
+    <h2>⏰ Զարթուցիչ</h2>
+    <div class="alarm-set-row">
+      <input type="time" id="alarmTime">
+      <button class="btn-primary" id="addAlarmBtn">Դնել զարթուցիչ</button>
+    </div>
+    <div class="alarm-list" id="alarmList"></div>
+    <button class="btn-ghost" id="notifyBtn" style="margin-top:6px;">🔔 Թույլատրել ծանուցումներ</button>
+    <div class="hint" id="notifyHint">Էջը պետք է մնա բացված browser-ում (կարող ես նվազագործել կամ անցնել այլ tab/պատուհան) — ամբողջովին փակելիս ոչ մի կայք չի կարող ձայն հանել, դա browser-ների սահմանափակում է։</div>
+  </div>
+</div>
+
+<div class="ring-overlay" id="ringOverlay">
+  <div class="ring-box">
+    <div class="bell">🔔</div>
+    <h3 id="ringTimeLabel">Զարթուցիչ</h3>
+    <button class="btn-primary" id="stopRingBtn">Կանգնեցնել</button>
+    <button class="btn-ghost" id="snoozeBtn">Հետաձգել 5 րոպե</button>
+  </div>
+</div>
+
+<script>
+(function() {
+  const STORAGE_TASKS = 'planner_tasks_v1';
+  const STORAGE_ALARMS = 'planner_alarms_v1';
+
+  function safeLoad(key, fallback) {
+    try {
+      const raw = localStorage.getItem(key);
+      return raw ? JSON.parse(raw) : fallback;
+    } catch (e) { return fallback; }
+  }
+  function safeSave(key, val) {
+    try { localStorage.setItem(key, JSON.stringify(val)); } catch (e) {}
+  }
+
+  let tasks = safeLoad(STORAGE_TASKS, []);
+  let alarms = safeLoad(STORAGE_ALARMS, []);
+
+  // ---------- Live clock ----------
+  const liveClock = document.getElementById('liveClock');
+  const liveDate = document.getElementById('liveDate');
+  const weekdays = ['կիրակի','երկուշաբթի','երեքշաբթի','չորեքշաբթի','հինգշաբթի','ուրբաթ','շաբաթ'];
+  const months = ['հունվարի','փետրվարի','մարտի','ապրիլի','մայիսի','հունիսի','հուլիսի','օգոստոսի','սեպտեմբերի','հոկտեմբերի','նոյեմբերի','դեկտեմբերի'];
+
+  function pad(n) { return n.toString().padStart(2, '0'); }
+
+  function updateClock() {
+    const now = new Date();
+    liveClock.textContent = `${pad(now.getHours())}:${pad(now.getMinutes())}:${pad(now.getSeconds())}`;
+    liveDate.textContent = `${weekdays[now.getDay()]}, ${now.getDate()} ${months[now.getMonth()]}`;
+    checkAlarms(now);
+  }
+
+  // ---------- Tasks ----------
+  const taskList = document.getElementById('taskList');
+  const emptyNote = document.getElementById('emptyNote');
+  const taskTimeInput = document.getElementById('taskTime');
+  const taskTextInput = document.getElementById('taskText');
+
+  function renderTasks() {
+    taskList.innerHTML = '';
+    const sorted = [...tasks].sort((a, b) => (a.time || '99:99').localeCompare(b.time || '99:99'));
+    emptyNote.style.display = sorted.length ? 'none' : 'block';
+    sorted.forEach(task => {
+      const li = document.createElement('li');
+      li.className = task.done ? 'done' : '';
+      li.innerHTML = `
+        <input type="checkbox" ${task.done ? 'checked' : ''} style="width:18px;height:18px;">
+        <span class="time-tag">${task.time || '--:--'}</span>
+        <span class="task-text"></span>
+        <button class="btn-danger">Ջնջել</button>
+      `;
+      li.querySelector('.task-text').textContent = task.text;
+      li.querySelector('input[type="checkbox"]').addEventListener('change', () => {
+        task.done = !task.done;
+        safeSave(STORAGE_TASKS, tasks);
+        renderTasks();
+      });
+      li.querySelector('.btn-danger').addEventListener('click', () => {
+        tasks = tasks.filter(t => t.id !== task.id);
+        safeSave(STORAGE_TASKS, tasks);
+        renderTasks();
+      });
+      taskList.appendChild(li);
+    });
+  }
+
+  document.getElementById('addTaskBtn').addEventListener('click', () => {
+    const text = taskTextInput.value.trim();
+    if (!text) { taskTextInput.focus(); return; }
+    tasks.push({ id: Date.now().toString(36), time: taskTimeInput.value, text, done: false });
+    safeSave(STORAGE_TASKS, tasks);
+    taskTextInput.value = '';
+    taskTimeInput.value = '';
+    renderTasks();
+  });
+  taskTextInput.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter') document.getElementById('addTaskBtn').click();
+  });
+
+  // ---------- Alarms ----------
+  const alarmList = document.getElementById('alarmList');
+  const alarmTimeInput = document.getElementById('alarmTime');
+
+  function renderAlarms() {
+    alarmList.innerHTML = '';
+    const sorted = [...alarms].sort((a, b) => a.time.localeCompare(b.time));
+    sorted.forEach(alarm => {
+      const div = document.createElement('div');
+      div.className = 'alarm-item' + (alarm.enabled ? '' : ' inactive');
+      div.innerHTML = `
+        <span class="a-time">${alarm.time}</span>
+        <div class="a-controls">
+          <div class="toggle ${alarm.enabled ? 'on' : ''}"></div>
+          <button class="btn-danger">✕</button>
+        </div>
+      `;
+      div.querySelector('.toggle').addEventListener('click', () => {
+        alarm.enabled = !alarm.enabled;
+        alarm.rungToday = false;
+        safeSave(STORAGE_ALARMS, alarms);
+        renderAlarms();
+      });
+      div.querySelector('.btn-danger').addEventListener('click', () => {
+        alarms = alarms.filter(a => a.id !== alarm.id);
+        safeSave(STORAGE_ALARMS, alarms);
+        renderAlarms();
+      });
+      alarmList.appendChild(div);
+    });
+  }
+
+  document.getElementById('addAlarmBtn').addEventListener('click', () => {
+    const val = alarmTimeInput.value;
+    if (!val) return;
+    alarms.push({ id: Date.now().toString(36), time: val, enabled: true, rungToday: false });
+    safeSave(STORAGE_ALARMS, alarms);
+    alarmTimeInput.value = '';
+    renderAlarms();
+  });
+
+  // ---------- Alarm ringing (Web Audio, no external files) ----------
+  let audioCtx = null;
+  let beepInterval = null;
+
+  function ensureAudioCtx() {
+    if (!audioCtx) {
+      const Ctx = window.AudioContext || window.webkitAudioContext;
+      audioCtx = new Ctx();
+    }
+    if (audioCtx.state === 'suspended') audioCtx.resume();
+    return audioCtx;
+  }
+
+  function playBeep() {
+    try {
+      const ctx = ensureAudioCtx();
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      osc.type = 'sine';
+      osc.frequency.value = 880;
+      gain.gain.setValueAtTime(0.0001, ctx.currentTime);
+      gain.gain.exponentialRampToValueAtTime(0.3, ctx.currentTime + 0.02);
+      gain.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime + 0.5);
+      osc.connect(gain);
+      gain.connect(ctx.destination);
+      osc.start();
+      osc.stop(ctx.currentTime + 0.5);
+    } catch (e) {}
+  }
+
+  const ringOverlay = document.getElementById('ringOverlay');
+  const ringTimeLabel = document.getElementById('ringTimeLabel');
+  let currentRingingAlarm = null;
+
+  function startRinging(alarm) {
+    currentRingingAlarm = alarm;
+    ringTimeLabel.textContent = 'Ժամը ' + alarm.time;
+    ringOverlay.classList.add('show');
+    if (beepInterval) clearInterval(beepInterval);
+    playBeep();
+    beepInterval = setInterval(playBeep, 700);
+    fireNotification(alarm);
+  }
+
+  // ---------- Notifications (works while tab stays open, incl. background/minimized) ----------
+  const notifyBtn = document.getElementById('notifyBtn');
+  const notifyHint = document.getElementById('notifyHint');
+
+  function updateNotifyBtn() {
+    if (!('Notification' in window)) {
+      notifyBtn.style.display = 'none';
+      return;
+    }
+    if (Notification.permission === 'granted') {
+      notifyBtn.textContent = '✅ Ծանուցումները թույլատրված են';
+      notifyBtn.disabled = true;
+    } else if (Notification.permission === 'denied') {
+      notifyBtn.textContent = '🔕 Ծանուցումներն արգելափակված են (փոխիր browser-ի կարգավորումներում)';
+      notifyBtn.disabled = true;
+    } else {
+      notifyBtn.textContent = '🔔 Թույլատրել ծանուցումներ';
+      notifyBtn.disabled = false;
+    }
+  }
+
+  notifyBtn.addEventListener('click', () => {
+    if (!('Notification' in window)) return;
+    Notification.requestPermission().then(updateNotifyBtn);
+  });
+
+  function fireNotification(alarm) {
+    if ('Notification' in window && Notification.permission === 'granted') {
+      try {
+        const n = new Notification('⏰ Զարթուցիչ ' + alarm.time, {
+          body: 'Ժամանակն է։ Սեղմիր՝ վերադառնալու համար։',
+          requireInteraction: true
+        });
+        n.onclick = () => { window.focus(); n.close(); };
+      } catch (e) {}
+    }
+  }
+
+  updateNotifyBtn();
+
+  function stopRinging() {
+    if (beepInterval) { clearInterval(beepInterval); beepInterval = null; }
+    ringOverlay.classList.remove('show');
+    currentRingingAlarm = null;
+  }
+
+  document.getElementById('stopRingBtn').addEventListener('click', () => {
+    if (currentRingingAlarm) {
+      currentRingingAlarm.rungToday = true;
+      safeSave(STORAGE_ALARMS, alarms);
+    }
+    stopRinging();
+  });
+
+  document.getElementById('snoozeBtn').addEventListener('click', () => {
+    if (currentRingingAlarm) {
+      const now = new Date();
+      now.setMinutes(now.getMinutes() + 5);
+      currentRingingAlarm.time = pad(now.getHours()) + ':' + pad(now.getMinutes());
+      currentRingingAlarm.rungToday = false;
+      safeSave(STORAGE_ALARMS, alarms);
+      renderAlarms();
+    }
+    stopRinging();
+  });
+
+  function checkAlarms(now) {
+    const hh = pad(now.getHours());
+    const mm = pad(now.getMinutes());
+    const current = `${hh}:${mm}`;
+    alarms.forEach(alarm => {
+      if (alarm.enabled && alarm.time === current && !alarm.rungToday && !ringOverlay.classList.contains('show')) {
+        startRinging(alarm);
+      }
+      if (alarm.time !== current && alarm.rungToday && now.getSeconds() === 1) {
+        alarm.rungToday = false;
+      }
+    });
+  }
+
+  // Unlock audio context on first user interaction (mobile browsers require this)
+  document.body.addEventListener('click', () => { ensureAudioCtx(); }, { once: true });
+
+  // ---------- Init ----------
+  renderTasks();
+  renderAlarms();
+  updateClock();
+  setInterval(updateClock, 1000);
+})();
+</script>
+</body>
+</html>
